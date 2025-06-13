@@ -1,4 +1,5 @@
 # SwiftUI Pokédex - Clean Architecture
+![Simulator Screen Recording - iPhone 16 Pro - 2025-06-13 at 14 26 18](https://github.com/user-attachments/assets/faf4e095-2503-414f-ae6b-be9f353a1b49)
 
 This project is a high-performance Pokédex application built with SwiftUI, designed to serve as a strong reference for modern iOS development using **Clean Architecture** and **MVVM**.
 
