@@ -26,7 +26,6 @@ final class PokedexViewModelTests: XCTestCase {
     super.tearDown()
   }
   
-  // TESTE 1: Cenário de Sucesso
   func testLoadPokemon_WhenUseCaseSucceeds_ShouldUpdateStateToContentAndPokemons() async {
     // Arrange
     let mockPokemons = [Pokemon(id: 1, name: "Bulbasaur", imageUrl: "url1")]
