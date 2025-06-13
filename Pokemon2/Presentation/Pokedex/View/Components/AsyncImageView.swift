@@ -9,44 +9,23 @@
 import SwiftUI
 
 struct AsyncImageView: View {
-    let url: URL?
-    @State private var image: UIImage? = nil
-    private let cache = CacheManager.shared
-
-    var body: some View {
-        Group {
-            if let image = image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-            } else {
-                ProgressView()
-            }
-        }
-        .onAppear(perform: loadImage)
+  @StateObject private var loader: ImageLoader
+  
+  private let cache = CacheManager.shared
+  init(url: URL?) {
+    _loader = StateObject(wrappedValue: ImageLoader(url: url ?? URL(string: "invalid")!))
+  }
+  
+  var body: some View {
+    Group {
+      if let image = loader.image {
+        Image(uiImage: image)
+          .resizable()
+          .scaledToFit()
+      } else {
+        ProgressView()
+      }
     }
-
-    private func loadImage() {
-        guard let url = url else { return }
-        
-        // Check cache
-        if let cachedImage = cache.image(forKey: url.absoluteString) {
-            self.image = cachedImage
-            return
-        }
-        
-        // Fetch image
-        Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                if let uiImage = UIImage(data: data) {
-                    // Cache and set image
-                    cache.setImage(uiImage, forKey: url.absoluteString)
-                    self.image = uiImage
-                }
-            } catch {
-                print("Failed to load image: \(error.localizedDescription)")
-            }
-        }
-    }
+    .onAppear(perform: loader.load)
+  }
 }

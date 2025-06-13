@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct Pokemon2App: App {
+  @StateObject private var router = Router()
   @StateObject private var pokedexViewModel: PokedexViewModel
   
   init() {
@@ -24,7 +25,26 @@ struct Pokemon2App: App {
   
   var body: some Scene {
     WindowGroup {
-      PokedexView(viewModel: pokedexViewModel)
+      // 2. Envolva a view raiz com o NavigationStack e passe o path do router
+      NavigationStack(path: $router.path) {
+        // 3. A view raiz precisa de uma forma de construir as outras telas (destinos)
+        PokedexView(viewModel: pokedexViewModel)
+          .navigationDestination(for: Route.self) { route in
+            // Aqui é onde o "mágico" do roteamento acontece
+            build(route: route)
+          }
+      }
+      .environmentObject(router) // 4. Injete o router no ambiente do SwiftUI
     }
   }
+  
+  @ViewBuilder
+     func build(route: Route) -> some View {
+         switch route {
+         case .pokedex:
+             PokedexView(viewModel: pokedexViewModel)
+         case .pokemonDetail:
+           Text("to be Implemented")
+         }
+     }
 }

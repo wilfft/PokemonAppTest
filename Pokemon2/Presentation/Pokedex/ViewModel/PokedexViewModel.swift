@@ -9,36 +9,41 @@ import Foundation
 import Combine
 
 @MainActor
-class PokedexViewModel: ObservableObject {
+final class PokedexViewModel: ObservableObject {
   @Published var pokemons: [Pokemon] = []
   @Published var viewState: ViewState = .loading
+  @Published var isFetchingMore: Bool = false
   
-  private let getPokemonListUseCase: GetPokemonListUseCase
+  private let getPokemonListUseCase: GetPokemonListUseCaseProtocol
+  private let listPageLimit = AppConfig.pokemonListPageLimit
+  private let maxPokemon = AppConfig.maxPokemon
   private var currentOffset = 0
-  private let limit = 15
   private var isLoadingMore = false
   private var canLoadMore = true
   
-  init(getPokemonListUseCase: GetPokemonListUseCase) {
-    self.getPokemonListUseCase = getPokemonListUseCase
-  }
+  init(getPokemonListUseCase: GetPokemonListUseCaseProtocol) {
+         self.getPokemonListUseCase = getPokemonListUseCase
+     }
   
   func loadPokemon() async {
     guard !isLoadingMore && canLoadMore else { return }
     
     isLoadingMore = true
-    if pokemons.isEmpty {
+    
+    if !pokemons.isEmpty {
+      isFetchingMore = true // <-- ATUALIZE AQUI
+    } else {
       viewState = .loading
     }
     
     do {
-      let newPokemons = try await getPokemonListUseCase.execute(offset: currentOffset, limit: limit)
-      if newPokemons.isEmpty || pokemons.count + newPokemons.count >= getPokemonListUseCase.pokemonLimit {
+      let newPokemons = try await getPokemonListUseCase.execute(offset: currentOffset, limit: listPageLimit)
+      if newPokemons.isEmpty || pokemons.count + newPokemons.count >= maxPokemon {
         canLoadMore = false
       }
       
       pokemons.append(contentsOf: newPokemons)
-      currentOffset += limit
+      currentOffset += listPageLimit
       viewState = pokemons.isEmpty ? .empty : .content
       
     } catch {
@@ -46,6 +51,7 @@ class PokedexViewModel: ObservableObject {
     }
     
     isLoadingMore = false
+    isFetchingMore = false
   }
   
   func loadMorePokemonIfNeeded(currentItem: Pokemon?) {

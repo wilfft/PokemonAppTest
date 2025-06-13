@@ -10,7 +10,7 @@ import UIKit
 
 // MARK: TODO- implement cache limit, count and size
 
-class CacheManager {
+final class CacheManager {
     static let shared = CacheManager()
     private init() {}
 

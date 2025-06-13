@@ -8,72 +8,81 @@
 import SwiftUI
 
 struct PokedexView: View {
-    @StateObject private var viewModel: PokedexViewModel
-    
-    init(viewModel: PokedexViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
-    }
-    
-    let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Header
-                headerView
-                
-                // Content
-                ZStack {
-                    Color(.systemGray6).edgesIgnoringSafeArea(.bottom)
-                    
-                    switch viewModel.viewState {
-                    case .loading:
-                        ProgressView("Loading Pokédex...")
-                    case .error(let message):
-                        Text(message)
-                            .padding()
-                            .multilineTextAlignment(.center)
-                    case .empty:
-                        Text("No Pokémon found.")
-                    case .content:
-                        pokemonGridView
-                    }
-                }
-            }
-            .task {
-                if viewModel.pokemons.isEmpty {
-                    await viewModel.loadPokemon()
-                }
-            }
-        }
-    }
-    
-    private var headerView: some View {
-        VStack {
-            HStack {
-                Text("Pokédex")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                Spacer()
-            }
+  @StateObject private var viewModel: PokedexViewModel
+  @EnvironmentObject private var router: Router
+  
+  init(viewModel: PokedexViewModel) {
+    _viewModel = StateObject(wrappedValue: viewModel)
+  }
+  
+  let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+  
+  var body: some View {
+    VStack(spacing: 0) {
+      // Header
+      headerView
+      
+      // Content
+      ZStack {
+        Color(.systemGray6).edgesIgnoringSafeArea(.bottom)
+        
+        switch viewModel.viewState {
+        case .loading:
+          ProgressView("Loading Pokédex...")
+        case .error(let message):
+          Text(message)
             .padding()
+            .multilineTextAlignment(.center)
+        case .empty:
+          Text("No Pokémon found.")
+        case .content:
+          pokemonGridView
         }
-        .padding(.bottom)
-        .background(Color.red)
+      }
     }
-    
-    private var pokemonGridView: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(viewModel.pokemons) { pokemon in
-                    PokemonCardView(pokemon: pokemon)
-                        .onAppear {
-                            viewModel.loadMorePokemonIfNeeded(currentItem: pokemon)
-                        }
-                }
+    .task {
+      if viewModel.pokemons.isEmpty {
+        await viewModel.loadPokemon()
+      }
+    }
+    .navigationTitle("Pokédex")
+    .navigationBarHidden(true) // Ocultamos a barra padrão para usar nosso header customizado
+  }
+  
+  private var headerView: some View {
+    VStack {
+      HStack {
+        Text("Pokédex")
+          .font(.largeTitle)
+          .fontWeight(.bold)
+          .foregroundColor(.white)
+        Spacer()
+      }
+      .padding()
+    }
+    .padding(.bottom)
+    .background(Color.red)
+  }
+  
+  private var pokemonGridView: some View {
+    ScrollView {
+      LazyVGrid(columns: columns, spacing: 10) {
+        ForEach(viewModel.pokemons) { pokemon in
+          PokemonCardView(pokemon: pokemon)
+            .onAppear {
+              viewModel.loadMorePokemonIfNeeded(currentItem: pokemon)
             }
-            .padding()
+            .onTapGesture {
+              router.navigate(to: .pokemonDetail(pokemon: pokemon))
+            }
         }
+      }
+      .padding()
+      
+      if viewModel.isFetchingMore {
+        ProgressView()
+          .padding()
+      }
     }
+  }
 }

@@ -4,24 +4,24 @@
 //
 //  Created by William Moraes da Silva on 13/06/25.
 //
+
 import Foundation
 
 protocol Endpoint {
     var scheme: String { get }
     var host: String { get }
     var path: String { get }
-    var method: HTTPMethod { get } // <-- Alterado de String para HTTPMethod
+    var method: HTTPMethod { get }
     var queryItems: [URLQueryItem]? { get }
-    var body: [String: Any]? { get } // <-- Adicionado para métodos como POST/PUT
-    var headers: [String: String]? { get } // <-- Adicionado para headers customizados
+    var body: [String: Any]? { get }
+    var headers: [String: String]? { get }
 }
 
 extension Endpoint {
     var scheme: String {
         return "https"
     }
-    
-    // O método padrão agora é o nosso enum .get
+  
     var method: HTTPMethod {
         return .get
     }

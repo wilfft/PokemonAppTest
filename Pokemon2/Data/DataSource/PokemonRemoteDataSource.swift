@@ -1,11 +1,11 @@
 //
-//  Untitled.swift
+//  PokemonRemoteDataSource.swift
 //  Pokemon2
 //
 //  Created by William Moraes da Silva on 13/06/25.
 //
 
-class PokemonRemoteDataSource {
+final class PokemonRemoteDataSource {
     private let networkService: NetworkService
     
     init(networkService: NetworkService = .shared) {

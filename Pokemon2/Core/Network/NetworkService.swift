@@ -8,14 +8,13 @@ enum NetworkError: Error {
     case serializationError
 }
 
-class NetworkService {
+final class NetworkService {
     static let shared = NetworkService()
     private let cache = CacheManager.shared
     
     private init() {}
 
     func request<T: Decodable>(endpoint: Endpoint) async throws -> T {
-        // 1. Construir a URL
         var components = URLComponents()
         components.scheme = endpoint.scheme
         components.host = endpoint.host
@@ -26,19 +25,18 @@ class NetworkService {
             throw NetworkError.invalidURL
         }
       
-      // 2. Tentar carregar do cache para requisições GET
+      // Loading from Cache when its was a Get Request
       if endpoint.method == .get, let cachedData = cache.data(forKey: url.absoluteString) {
         do {
           let decodedObject = try JSONDecoder().decode(T.self, from: cachedData)
-          // LOG DE DIAGNÓSTICO
           print("✅ [Cache HIT] Dados para a URL: \(url.absoluteString)")
           return decodedObject
-        } catch {
+        } catch { // ignore and continue to downloading
         }
       }
-      // 3. Construir a URLRequest
+        
         var request = URLRequest(url: url)
-        request.httpMethod = endpoint.method.rawValue // Usar o rawValue do enum
+        request.httpMethod = endpoint.method.rawValue
         
         if let body = endpoint.body {
             do {
@@ -53,14 +51,13 @@ class NetworkService {
             request.addValue(value, forHTTPHeaderField: key)
         }
 
-        // 4. Executar a requisição
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
             throw NetworkError.invalidResponse
         }
         
-      // 5. Decodificar e colocar no cache (se for GET)
+      // 5. storing in the cache
       do {
         let decodedObject = try JSONDecoder().decode(T.self, from: data)
         if endpoint.method == .get {

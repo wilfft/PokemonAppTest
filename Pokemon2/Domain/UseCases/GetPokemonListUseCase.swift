@@ -7,9 +7,12 @@
 
 import Foundation
 
-class GetPokemonListUseCase {
+protocol GetPokemonListUseCaseProtocol {
+    func execute(offset: Int, limit: Int) async throws -> [Pokemon]
+}
+
+final class GetPokemonListUseCase: GetPokemonListUseCaseProtocol {
     private let repository: PokemonRepository
-    let pokemonLimit = 151
   
     init(repository: PokemonRepository) {
         self.repository = repository
@@ -28,7 +31,7 @@ class GetPokemonListUseCase {
             var results: [Pokemon] = []
             
             for item in listItems {
-              if let id = extractId(from: item.url), id <= pokemonLimit {
+              if let id = extractId(from: item.url), id <= AppConfig.maxPokemon {
                     group.addTask {
                         return try await self.repository.getPokemonDetail(id: id)
                     }
