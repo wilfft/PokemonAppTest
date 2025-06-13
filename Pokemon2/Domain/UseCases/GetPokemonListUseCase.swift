@@ -9,7 +9,7 @@ import Foundation
 
 class GetPokemonListUseCase {
     private let repository: PokemonRepository
-    private let pokemonLimit = 151
+    let pokemonLimit = 151
   
     init(repository: PokemonRepository) {
         self.repository = repository
@@ -28,7 +28,7 @@ class GetPokemonListUseCase {
             var results: [Pokemon] = []
             
             for item in listItems {
-                if let id = extractId(from: item.url), id <= pokemonLimit {
+              if let id = extractId(from: item.url), id <= pokemonLimit {
                     group.addTask {
                         return try await self.repository.getPokemonDetail(id: id)
                     }
