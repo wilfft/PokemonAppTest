@@ -35,7 +35,8 @@ The project adheres to the Clean Architecture dependency rule, ensuring dependen
 ```
 Presentation (MVVM) -> Domain (Use Cases) -> Data (Repositories) -> Core (Network)
 ```
-![GitHub - mind0w/HelloCleanArchitectureWithSwiftUI: CleanArchitecture for  SwiftUI with Combine, Concurrency](https://user-images.githubusercontent.com/25020477/155071101-28765b74-9c9a-4ccb-ae19-f342288937c0.png)
+![clean](https://github.com/user-attachments/assets/5dbfbbf3-1128-4003-9f2f-f3c6c208d1c2)
+
 
 1.  **Core Layer:** Contains a generic, protocol-based NetworkService and a reusable CacheManager. It has no knowledge of Pokémon or any other business logic.
     
