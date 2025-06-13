@@ -31,7 +31,7 @@ final class PokedexViewModel: ObservableObject {
     isLoadingMore = true
     
     if !pokemons.isEmpty {
-      isFetchingMore = true // <-- ATUALIZE AQUI
+      isFetchingMore = true
     } else {
       viewState = .loading
     }

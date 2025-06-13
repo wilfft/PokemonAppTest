@@ -11,62 +11,62 @@ import Combine
 
 @MainActor
 final class ImageLoader: ObservableObject {
-    @Published var image: UIImage?
-
-    private static let cache = CacheManager.shared
+  @Published var image: UIImage?
+  
+  private static let cache = CacheManager.shared
+  private static var runningTasks: [URL: Task<UIImage, Error>] = [:]
+  
+  private let url: URL
+  
+  init(url: URL) {
+    self.url = url
+  }
+  
+  func load() {
+    // cache first approach
+    if let cachedImage = Self.cache.image(forKey: url.absoluteString) {
+      print("🖼️ [Cache HIT] Imagem carregada do cache: \(url.lastPathComponent)")
+      self.image = cachedImage
+      return
+    }
     
-    // Dicionário para rastrear tarefas de download em andamento.
-    // A chave é a URL da imagem. O valor é a tarefa.
-    private static var runningTasks: [URL: Task<UIImage, Error>] = [:]
-
-    private let url: URL
-
-    init(url: URL) {
-        self.url = url
+    // Check if there is already a task is progress for this url
+    if let runningTask = Self.runningTasks[url] {
+      print("⏳ [Task JOIN] Aguardando tarefa existente para: \(url.lastPathComponent)")
+      // if yes, merge it to the existing task to obtain the result
+      Task {
+        self.image = try? await runningTask.value
+      }
+      return
     }
-
-    func load() {
-        // 1. Tenta carregar do cache primeiro
-        if let cachedImage = Self.cache.image(forKey: url.absoluteString) {
-            print("🖼️ [Cache HIT] Imagem carregada do cache: \(url.lastPathComponent)")
-            self.image = cachedImage
-            return
-        }
-
-        // 2. Verifica se já existe uma tarefa em andamento para esta URL
-        if let runningTask = Self.runningTasks[url] {
-            print("⏳ [Task JOIN] Aguardando tarefa existente para: \(url.lastPathComponent)")
-            // Se sim, "junta-se" à tarefa existente para obter seu resultado
-            Task {
-                self.image = try? await runningTask.value
-            }
-            return
-        }
-
-        // 3. Se não houver cache nem tarefa em andamento, cria uma nova tarefa
-        print("🌐 [Network] Iniciando nova tarefa de download para: \(url.lastPathComponent)")
-        let task = Task<UIImage, Error> {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let downloadedImage = UIImage(data: data) else {
-                throw URLError(.cannotDecodeContentData)
-            }
-            // Salva no cache antes de retornar
-            Self.cache.setImage(downloadedImage, forKey: url.absoluteString)
-            print("💾 [Cache SET] Imagem salva no cache: \(url.lastPathComponent)")
-            return downloadedImage
-        }
-
-        Self.runningTasks[url] = task
-
-        // 5. Aguarda o resultado da tarefa e atualiza a imagem
-        Task {
-            do {
-                self.image = try await task.value
-            } catch {
-                print("❌ Falha ao carregar imagem: \(error.localizedDescription)")
-            }
-            // 6. Remove a tarefa do dicionário quando ela for concluída (com sucesso ou erro)
-            Self.runningTasks[url] = nil
-        }
+    
+    // If there is no cache or task in progress, create a new task
+    print("🌐 [Network] Iniciando nova tarefa de download para: \(url.lastPathComponent)")
+    let task = Task<UIImage, Error> {
+      let (data, _) = try await URLSession.shared.data(from: url)
+      guard let downloadedImage = UIImage(data: data) else {
+        throw URLError(.cannotDecodeContentData)
+      }
+      
+      // save in cache before returning
+      
+      Self.cache.setImage(downloadedImage, forKey: url.absoluteString)
+      print("💾 [Cache SET] Imagem salva no cache: \(url.lastPathComponent)")
+      return downloadedImage
     }
+    
+    Self.runningTasks[url] = task
+    
+    // wait for the result and update the image
+    Task {
+      do {
+        self.image = try await task.value
+      } catch {
+        print("❌ Falha ao carregar imagem: \(error.localizedDescription)")
+      }
+      // Remove the task from the dict when it is concluded
+      // Remove a tarefa do dicionário quando ela for concluída (com sucesso ou erro)
+      Self.runningTasks[url] = nil
+    }
+  }
 }

@@ -19,11 +19,8 @@ struct PokedexView: View {
   
   var body: some View {
     VStack(spacing: 0) {
-      // Header
       headerView
-      
-      // Content
-      ZStack {
+            ZStack {
         Color(.systemGray6).edgesIgnoringSafeArea(.bottom)
         
         switch viewModel.viewState {
@@ -46,7 +43,7 @@ struct PokedexView: View {
       }
     }
     .navigationTitle("Pokédex")
-    .navigationBarHidden(true) // Ocultamos a barra padrão para usar nosso header customizado
+    .navigationBarHidden(true)
   }
   
   private var headerView: some View {

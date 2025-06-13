@@ -57,12 +57,11 @@ final class NetworkService {
             throw NetworkError.invalidResponse
         }
         
-      // 5. storing in the cache
+      // Store in the cache
       do {
         let decodedObject = try JSONDecoder().decode(T.self, from: data)
         if endpoint.method == .get {
           cache.setData(data, forKey: url.absoluteString)
-          // LOG DE DIAGNóstico
           print("📦 [Cache SET] Dados para a URL: \(url.absoluteString) salvos no cache.")
         }
         return decodedObject
