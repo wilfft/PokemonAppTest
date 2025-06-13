@@ -8,6 +8,8 @@
 import Foundation
 import UIKit
 
+// MARK: TODO- implement cache limit, count and size
+
 class CacheManager {
     static let shared = CacheManager()
     private init() {}

@@ -15,3 +15,4 @@ struct Pokemon2App: App {
         }
     }
 }
+

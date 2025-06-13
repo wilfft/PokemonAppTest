@@ -1,7 +1,5 @@
 import Foundation
 
-eimport Foundation
-
 enum NetworkError: Error {
     case invalidURL
     case requestFailed(Error)
@@ -27,18 +25,18 @@ class NetworkService {
         guard let url = components.url else {
             throw NetworkError.invalidURL
         }
-        
-        // 2. Tentar carregar do cache para requisições GET
-        if endpoint.method == .get, let cachedData = cache.data(forKey: url.absoluteString) {
-            do {
-                let decodedObject = try JSONDecoder().decode(T.self, from: cachedData)
-                return decodedObject
-            } catch {
-                // O cache é inválido, continuar para a requisição de rede
-            }
+      
+      // 2. Tentar carregar do cache para requisições GET
+      if endpoint.method == .get, let cachedData = cache.data(forKey: url.absoluteString) {
+        do {
+          let decodedObject = try JSONDecoder().decode(T.self, from: cachedData)
+          // LOG DE DIAGNÓSTICO
+          print("✅ [Cache HIT] Dados para a URL: \(url.absoluteString)")
+          return decodedObject
+        } catch {
         }
-        
-        // 3. Construir a URLRequest
+      }
+      // 3. Construir a URLRequest
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue // Usar o rawValue do enum
         
@@ -62,15 +60,17 @@ class NetworkService {
             throw NetworkError.invalidResponse
         }
         
-        // 5. Decodificar e colocar no cache (se for GET)
-        do {
-            let decodedObject = try JSONDecoder().decode(T.self, from: data)
-            if endpoint.method == .get {
-                cache.setData(data, forKey: url.absoluteString)
-            }
-            return decodedObject
-        } catch {
-            throw NetworkError.decodingError(error)
+      // 5. Decodificar e colocar no cache (se for GET)
+      do {
+        let decodedObject = try JSONDecoder().decode(T.self, from: data)
+        if endpoint.method == .get {
+          cache.setData(data, forKey: url.absoluteString)
+          // LOG DE DIAGNóstico
+          print("📦 [Cache SET] Dados para a URL: \(url.absoluteString) salvos no cache.")
         }
+        return decodedObject
+      } catch {
+        throw NetworkError.decodingError(error)
+      }
     }
 }
